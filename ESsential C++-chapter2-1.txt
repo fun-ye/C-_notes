@@ -1,0 +1,26 @@
+1.7 文件的读写
+#include <fstream>
+//打开可供输出文件
+ofstream outfile( "seq_data.txt" );
+ofstream outfile( "seq_data.txt", ios_base::app );//追加模式
+if( ! outfile )
+outfile << usr_name << endl;
+//打开可供读取文件
+ifstream infile( "seq_data.txt" );
+while( infile >> name )
+
+2.5 声明inline函数
+inline 对编译器提出的一种请求
+编译器将函数的调用操作改为一份函数代码副本代替
+inline函数的定义常常放在头文件中
+
+2.7 模板函数
+template <typename elemType>
+
+2.8 函数指针
+const vector<int>*      (*seq_ptr)( int );
+  返回类型         函数指针指向const vector  元素类型
+const vector<int> *pseq = seq_ptr( pos ); //调用函数指针指向的函数
+seq_ptr = pell_seq; //取得函数地址
+//函数指针数组
+const vector<int>* (*seq_array[])(int) = { a, b, c, d, e, f };

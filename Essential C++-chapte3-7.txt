@@ -1,0 +1,614 @@
+第二章 面向过程编程风格
+
+1.7 文件的读写
+#include <fstream>
+//打开可供输出文件
+ofstream outfile( "seq_data.txt" );
+ofstream outfile( "seq_data.txt", ios_base::app );//追加模式
+if( ! outfile )
+outfile << usr_name << endl;
+//打开可供读取文件
+ifstream infile( "seq_data.txt" );
+while( infile >> name )
+
+2.5 声明inline函数
+inline 对编译器提出的一种请求
+编译器将函数的调用操作改为一份函数代码副本代替
+inline函数的定义常常放在头文件中
+
+2.7 模板函数
+template <typename elemType>
+
+2.8 函数指针
+const vector<int>*      (*seq_ptr)( int );
+  返回类型         函数指针指向const vector  元素类型
+const vector<int> *pseq = seq_ptr( pos ); //调用函数指针指向的函数
+seq_ptr = pell_seq; //取得函数地址
+//函数指针数组
+const vector<int>* (*seq_array[])(int) = { a, b, c, d, e, f };
+
+第三章 泛型编程风格
+
+STL：容器（container）+泛型算法（generic algorithm）//与操作元素的元素类型无关
+容器：
+顺序性容器：vector list 迭代操作 依次维护
+list :一组指针相互链接
+关联容器：map set 快速查找元素
+Map=:key(查找)/value（数据）
+Set=:key（判断某值存在）
+泛型算法：
+Function template技术借由一对iterator(first和last)表示元素范围。
+
+3.1 指针的算术运算
+//判断某值是否在vector中
+Int* find（ const vector<int> &vec, int value）;
+//处理任何类型数据
+Template <typename elemType>
+elemType* find( const vector<elemType> &vec, const elemType  &value)
+//同时处理vector array 内任意类型数据
+（函数重载）
+1实现find（）函数
+Template <typename elemType>
+elemType* find( const elemType *array, int size, const elemType &value)
+template <typename elemType>
+elemType* find( const elemType *array, const elemType *sentinel, const elemType &value); //标兵sentinel
+template <typename elemType>
+elemType* find( const elemType *first, const elemType *last, const elemType &value); //移除array声明
+2任意元素类型
+vector可空 array 不然
+vector<string> svec;
+if(! svec.empty（）)
+or 取用第一个元素的地址
+template <typename elemType>
+inline elemType* begin( const vector<elemType> &vec )
+    { return vec.empty（）? 0 : &vec[0]; }
+find( begin( svec ), end( svec), search_value);
+//支持list类型
+底层指针行为之上提供一层抽象层
+
+3.2 了解Iterator(泛型指针)
+vector<string> svec;
+vector<string>::iterator iter = svec.begin(); //iterator泛型指针 指向vector 元素类型string 初值为svec的第一个元素 ：：表示嵌套类型
+
+template  < typename IteratorType, typename elemType >
+IteratorType find ( IteratorType first, IteratorType last , const elemType &value);
+
+3.3 所有容器的共同操作
+== 、！= 、 = 、 empty（）、size() 、 clear()//删除所有元素
+begin() end() // 返回第一个/最后一个元素下一个位置 iterator
+
+3.4 使用顺序性容器
+vector：连续内存 随机访问
+list ：double-linked 包含value 、back指针 、front指针 遍历操作访问
+deque: 连续内存 最前端、末端操作效率更高
+头文件
+#include <vector>
+#include <list>
+#include <deque>
+定义容器对象5种方式
+vector< int > ivec; //产生空的容器
+vector< string > svec( 1024 );//特定大小容器
+vector< int > ivec( 1024, 1 );//赋初值
+int ia[8] = {1};
+vector< int > fib( ia, ia+8 ); //一对iterator产生容器
+list< string > slist;
+list< string > slist2( slist );//容器赋值
+
+容器末尾插入删除操作 不返回元素值
+push_back() pop_back()
+list deque首端操作：push_front() pop_front()
+读取末端前端值
+front() back()
+
+通用插入函数insert()
+iterator insert ( iterator position, elemType value );
+void insert( iterator position, int count, elemType value); //插入count个value
+void insert (iterator1 position, iterator2 first, iterator2 last); //在position前插入[first,last]
+void insert( iterator position)；//插入默认值
+iterator erase( iterator position); //删除posi元素
+iterator erase ( iterator first, iterator last);
+
+3.5 使用泛型算法
+#include <algorithm）
+bool is_elem( vector<int> &vec, int elem )
+{
+    return binary_search( vec.begin(), vec.end(), elem );
+}
+
+3.6 如何设计一个泛型算法
+vector<int> less_than_10( const vector<int> &vec);
+vector<int> less_than( const vector<int> &vec, int less_than_val);
+vector<int> filter( const vector<int> &vec, int less_than_val, bool (*pred)( int, int ) );
+
+Function Object
+#include <functional>
+某种class的实例对象 class对function call运算符做了重载操作
+
+Function Object Adapter(适配器)
+binder adapter :binary function object -> unary function object //二元->一元
+bind1st bind2nd
+vector<int> filter( const vector<int> &vec, int val, less<int> &lt );
+find_if( iter, vec_end(), bind2nd( lt, val ))  //替代for循环
+
+3.7 使用Map
+#include <map>
+#include <string>
+map<string,int> words; //字典单字出现次数
+words[ "vermeer" ] = 1;
+
+map<string,int>::iterator it = words.begin();
+it->first it->second //分别对应key value
+查询map内存在value
+1 key当成索引
+  int count = 0;
+  if( ! (count = words["vermeer"])) //若不存在 默认加入Key value为0
+2 map中的find()函数
+  map<string,int>::iterator it = words.find("vermeer");
+  if( it != words.end() ) cout = it->second;
+3 map 中的count()函数
+  string search_word( "vermeer" );
+  words.count(search_word);
+
+3.8 使用set
+#include<set>
+
+vector<int> vec( ia, ia+8 );
+set<int> iset( vec.begin(), vec.end() ); //消除重复元素
+iset.insert( ival ); //插入元素
+iset.insert( vec.begin(), vec.end() );//插入某范围内元素
+set<int>::iterator it = iset.begin(); //set进行迭代
+for(; it != iset.end(); ++it)
+    cout << *it << ' ' ;
+
+3.9 如何使用Iterator Insert
+源端容器赋值到目的端容器
+三个insertion adapter
+#include <iterator>
+1
+back_inserter() 以push_back()取代assignment
+vector<int> result_vec;
+unique_copy( ivec.begin; ivec.end(); back_inserter( result_vec ) );
+2
+inserter() 两个参数 一个容器 一个iterator 以insert()取代assignment 
+vector<int> result_vec;
+unique_copy( ivec.begin; ivec.end(); inserter( result_vec, result_vec.end() ));
+3 适用于list deque
+front_inserter() 以push_front()取代assignment
+list<int> ilist_clone;
+copy( ilist.begin(), ilist.end(), front_inserter( ilist_clone ) );
+
+3.10 使用 iostream iterator
+#include <iterator>
+标准库中iostream iterator类 istream_iterator ostream_iterator 支持单一类型元素的读写
+istream_iterator<string> is( cin );  //first is定义为绑定到标准输入设备的istream_iterator 
+istream_iterator<string> eof;  //last 读取最后一个元素的下一个位置
+copy( is, eof, back_inserter( text ));
+
+ostream_iterator<string> os( cout, " " ); //第二个参数表示分隔符
+copy( text.begin(), text.end(), os );
+
+文件中读取
+将 istream_iterator 绑定到 ifstream object
+ifstream in_file( "input_file.txt" );
+istream_iterator<string> is( in_file );
+
+第四章 基于对象的编程风格
+class:一组public操作函数 运算符 （member function) + 一组private实现细节(member function定义 和 任何相关数据)
+
+4.1 如何实现一个Class
+class Stack {
+    public:
+     接口
+    private:
+     实现部分
+};
+
+class内定义成员函数自动视为inline函数
+主体之外定义成员函数语法： inline bool Stack::empty () { } //:: class scope resulution
+
+global scope运算符 ：：表示是成员函数 or 全局作用泛型函数
+
+4.2 什么是构造函数和析构函数
+constructor:
+初始化 data member 可重载 无返回值 无返回类型 
+Triang();
+Triang( int len );
+Triang( int len, int beg_pos );
+两种情况：
+1default constructor:
+Triang::Triang()
+{
+    len = 1;
+    bridth = 2;
+}
+2为每个参数提供默认值
+Triang( int len = 1, int bp =1 );
+
+Member Initialiization list
+Triang::Triang( const Triang &rhs )
+    : _len( rhs._len ),
+      _beg( ths._beg ), _next( rhs._beg )
+{ }
+e.g. Triang::Triang( int len, int bp )
+       :  _name( "Triang" )
+     { _len = len > 0 ? len : 1; }
+
+destructor:
+~classname 无返回值 无参数
+
+~matrix()
+{
+    delete [] _pamt;
+}
+ 
+Memberwise Initialiization
+Triang tril(8);
+Triang tril2 = tril; //成员逐一初始化
+default Memberwise Initialiization 解析函数二次解析对已经释放的空间进行操作
+修正：copy constructor
+matrix::matrix( const matrix &rhs )
+    : _row ( rhs.row ), _col ( rhs.col )
+{
+    //进行完全副本
+}
+
+4.3 ? 何谓mutable和const
+const member function 
+class val_class {   //提供两份定义
+    public:
+    const Bigclass& val() const { return _val; }
+    Bigclass& val() { return _val; }
+
+};
+const object只能调用const member function
+
+Mutable Data Member
+void next_reset() const { _next = _beg_pos -1; }
+mutable int _next; //不破幻class object 的常量性
+
+4.4 什么是this指针
+this指针系在member function内用来指向其调用者（一个对象）
+
+4.5 静态类成员
+static data member 与全局对象的区别：名称附上class scope运算符
+用来表示唯一 可共享的member 在同一类的所有对象中被访问
+static vector<int> _elem;
+vector<int> Triang::_elem;
+int Triang::_initial_size = 8;
+
+static member function
+
+4.6 打造一个 Iteraotr class
+inline bool Triangular_iterator::
+operator== ( const Triangular_iterator &rhs ) const
+            { return _index == rhs._index; }
+
+4.7 合作关系必须建立在友谊的基础上
+class Triangular {
+    friend int operator*( const Triangular_iterator &rhs ) //friend具备了与class member function 相同的访问权限
+};
+
+
+inline int operator*( const Triangular_iterator &rhs )
+{
+    rhs.check_integrity();
+    return Triangular ::_elem[ rhs.index() ];
+}
+
+4.8 实现一个copy assignment operator
+取代default Memberwise copy 
+Matrix 需要一个copy constructor 和 copy assignment operator
+
+4.9 实现一个function object
+提供有function call运算符 的 class
+LessThan It10( 10 );
+function object 当做参数传给泛型算法
+如果一个类将()运算符重载为成员函数，这个类就称为函数对象类，这个类的对象就是函数对象
+
+4.10 重载 iostream 运算符
+ostream operator<<( ostream &os, const Triangular &rhs )
+{
+    os << "(" << rhs.beg_pos << "," 
+    << rhs.length() << ")" ;
+    rhs.display( rhs.length(), rhs.beg_pos(), os );
+    return os;
+}
+
+4.11 指针，指向Class Member Function
+pointer to member function :
+void (num_sequence::*pm)(int) = 0;
+返回类型 指向类   指针   参数类型个数 赋初值
+简化： typedef void (num_sequence::*PtrType)(int);
+PtrType pm = 0;
+PtrType pm = &num_sequence::fibonacci;//取得函数地址
+num_sequence::PtrType              //嵌套类型
+    num_sequence::func_tbl[ num_seq ] = {};
+num_sequence ns;
+num_sequence *pns  = &ns;
+PtrType pm = &num_sequence::fibonacci;
+(ns.*pm)( pos );  //.*pointer to member selection
+                    ->pointer to class object 
+
+
+chapter5 面向对象编程风格
+
+5.1 面向对象编程概念
+inheritance(继承)：共享数据和操作
+polymorphism（多态）：类操作同一个体，增加弹性
+dynamic binding(动态绑定)
+static binding(静态绑定)：非面向对象编程
+
+5.2 漫游：面向对象编程思维
+派生类与基类
+class Book : public LibMat{
+
+};
+virtual函数在运行时动态进行 默认情况下在编译时静态执行
+protected成员可以直接且仅被派生类成员访问
+
+5.3 不带继承的多态
+
+5.4 定义一个抽象基类
+找出所有子类共通的操作行为
+找出那些操作与类型有关：操作行为必须根据不同的派生类而有不同的实现方式。
+这些操作行为称谓类继承体系中的虚函数 //static member function无法被声明为虚函数
+找出每个操作行为的访问层级
+虚函数：定义 or 设为纯虚函数 
+virtual void gen_elems( int pos ) = 0;  //纯虚函数
+num_sequence::~num_sequence() {} //析构函数提供空白定义
+
+5.5 定义一个派生类
+组成：subobject(基类的non-static data member) + 派生类的部分(派生类的non-static data member)
+class fibonacci : public num_sequence{
+public:
+    fibonacci()
+        :_len(len) {}
+    virtual int elem( int pos ) const;
+    int length() const { return _length; }
+protected:
+    virtual  void  gen_elems( int pos ) const;
+    int     _len;
+};
+
+派生类某个member与其基类的member同名时i，遮盖住基类的member//class scope::加以限定
+if( ! num_sequence::check_integrity( pos ))
+
+5.6 运用继承体系
+
+5.7 基类应该多么抽象
+抽象类提供接口
+reference 无法代表空对象 必须在 constructor的 member Initialiization list 初始化 pointer可以是null
+
+5.8 初始化、析构、复制
+为基类提供 constructor 初始化 
+a.派生类的 data member 为派生类进行初始化 还需要对其基类进行初始化
+inline fib :: fib（ int len, int beg)
+        :num_sequence( len, brg, _elem )
+{}
+b.为基类提供 default constructor
+
+5.9 在派生类中定义一个虚函数
+定义派生类时，覆盖基类所提供的虚函数，那么派生类所提供的新定义，其函数原型必须完全符合基类所声明的函数原型
+//当基类的虚函数返回某个基类形式（pointer or reference) 派生类中的同名函数便可以返回该基类所派生出来的类型
+
+虚函数的静态解析（ static resolution )
+在基类的 constructor 中，派生类的虚函数绝对不会被调用
+
+
+5.10 运行时的类型鉴定机制
+提供一份 what_am_i 派生类通过继承机制加以复用
+1) 为 num_sequence 增加一个 string member
+inline fibonacci::
+fibonacci( int len, int beg_pos )
+        : num_sequence( len, beg_pos, _elem， "fibonacci" )
+{}
+2）typeid 运算符
+#include <typeinfo>         //typeid 运算符 查询多态化的class pointer 或 class reference 获得其所指对象的实际类型
+inline const char* num_sequence ::
+what_am_i() const 
+            { return typeid( *this ).name(); }  //name()返回一个 const char*
+                     type_info对象，关联至this所指向对象
+fibonacci *pf = static_cast<fibonacci*>( ps ); //无条件转换
+fibonacci *pf = dynamic_cast<fibonacci*>( ps ); //动态转换
+pf->gen_elems( 64 );
+
+Chapter 6 以template进行编程
+
+6.1 template 被参数化的类型
+template <typename valType>
+valType _val;
+
+template <typename valType>
+class BTnode {
+    friend class BinaryTree<valType>;
+};
+
+BTnode<int> bti;
+template <typename elemType>
+class BinaryTree{
+public:
+
+private:
+    BTnode<elemType> *_root; // template parameter list 加以限定在除 class template及其 member 的定义中
+};
+ BinaryTree< string > st; pointer _root 指向一个节点值类型为string的BTnode
+
+6.2 Class Template的定义
+class template定义inline函数
+template <typename elemType>
+inline BinaryTree<elemType>::
+BinaryTree() : _root( 0 )   //class定义范围外  BinaryTree<elemType>:: class定义范围内
+{}
+
+6.3 Template类型参数的处理
+template <typename valType>
+inline BTnode<valType>:: BTnode( const valType &val )
+    : _val( val )                      //member  Initialiization list
+{
+    _cnt = 1;
+    _lchild = _rchild = 0;
+}
+BTnode<int> btni( 42 );
+BTnode<MAtrix> btnm( transform_matrix ); //用参数化列表效率更高
+
+6.4 实现一个 Class Template
+remove_value( const valType &val, BTnode *& prev ); // *& reference to pointer 改变pointer本身，可以改变pointer指向的对象
+
+6.5 一个以Function Template 完成的 Output 运算符
+template <typename elemType>
+inlien ostream&
+operator<<( ostream &os, const BinaryTree<elemType> &bt )
+{
+    os << " Tree: " << endl;
+    bt.print( os );
+    return os;
+}
+BinaryTree<string> bts;
+cout << bts << endl;
+
+6.6 常量表达式与默认参数值
+const expression 作为 template 的参数
+
+template < int len >
+class num_sequence{
+public:
+    num_sequence( int beg_pos = 1);
+};
+
+template <int len>
+class fibonacci : public num_sequence<len> {
+public:
+    fibonacci( int beg_pos = 1 )
+        : num_sequence<len>( beg_pos ){}
+};
+
+fibonacci<16> fib2(17);
+/*接受函数指针作为参数的数列类*/
+template <void (*pf)(int pos, vector<int> &seq)>
+class numeric_sequence{
+
+};
+
+numeric_sequence<fibonacci> ns_fib( 12, 8 );
+                 //function
+
+6.7 以Template参数作为一种设计策略
+template <typename elemType, typename Comp = less<elemType> >
+class LessThanPred{
+
+};
+class stringLen{
+
+};
+LessThanPred<int, stringLen> Itps ( "pooh");
+
+6.8 Member Template Function
+class PrintIt{
+public:
+    PrintIt( ostream &os )
+        : _os( os ) {}
+    //member template function 
+    template<typename elemType>
+    void print( const elemType &elem, char delimiter = '\n' )
+        { _os << elem << delimiter; }
+private:
+    ostream& _os;
+};
+
+PrintIt to_standard_out( cout );
+to_standard_out.print("hello");
+
+class template内也可以定义 member template function 
+
+
+Chapter 7 异常处理 (Exception Handling)
+
+7.1 抛出异常 throwing an Exception
+异常处理机制成分：异常的鉴定与发出 + 异常的处理方式
+inline void Triangular_iterator::
+check_integrity()
+{
+    if( _index >= Triangular::_max_elems )
+        throw iterator_overflow( _index, Triangular::_max_elems ); //iterator_overflow为特定的异常类
+    if( _index >= Triangular::_elems.size() )
+        Triangular::gen_elements( _index + 1 );
+}
+
+异常是某种对象
+throw 42;
+throw "panic: no buffer!";
+
+class iterator_overflow{
+
+};
+
+7.2 捕获异常 Catching an Exception
+extern void log_message( const char* );
+extern string  err_messages[];
+extern ostream log_file;
+
+bool some_function()
+{
+    bool status = true;
+    //...异常处理
+
+    catch( int errno ){
+        log_message( err_messages[ errno ] );
+        status = false;
+    }
+    catch( const char *str ){
+        log_message( str );
+        status = false;
+    }
+    catch( iterator_overflow &iof ){
+        iof.what_happened( log_file );
+        status = false;
+        //throw   无法处理重新抛出寻求其他catch语句帮忙
+    }
+    catch( ... ){
+        /*捕获所有类型的异常*/
+    }
+    return status;
+}
+
+7.3 提炼异常 Trying for an Exception
+try{
+    while( first != last ){
+            if( *first == elem )
+                return status;
+                ++first;
+    }
+}
+
+catch( iterator_overflow &iof ){
+    log_message( iof.what_happened() );
+}
+status = false;
+return status;
+
+7.4 局部资源管理 Local Resource Management
+void f()
+{
+    try{
+        //
+    }
+    catch( ... ) {
+        m.release();
+        delete p;
+        throw;
+    }
+}
+
+#include <memory>
+void f()
+{
+    auto_ptr<int> p( new int );  //p ml Local对象  auto_ptr自动删除通过new表达式分配的对象
+    MutexLock ml( m );
+    process( p );
+}
+
+7.5 标准异常 The Standard Exception
+catch( const excepetion &ex )   //捕捉exception的所有派生类
+{
+    cerr << ex.what() << endl;
+}
